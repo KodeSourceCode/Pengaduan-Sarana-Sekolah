@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SISWA
+  ADMIN
+}
+
+enum StatusAspirasi {
+  MENUNGGU
+  DIPROSES
+  SELESAI
+  DITOLAK
+}
+
+enum KategoriEnum {
+  KEBERSIHAN
+  KEAMANAN
+  FASILITAS_BELAJAR
+  INFRASTRUKTUR
+  LAINNYA
+}
+
+model User {
+  id         String   @id @default(uuid())
+  nis        String   @unique
+  nama       String
+  email      String   @unique
+  password   String
+  kelas      String
+  role       Role     @default(SISWA)
+  createdAt  DateTime @default(now())
+
+  aspirasi         Aspirasi[]
+  umpanBalik       UmpanBalik[]
+  progressPerbaikan ProgressPerbaikan[]
+}
+
+model Aspirasi {
+  id          String         @id @default(uuid())
+  judul       String
+  deskripsi   String
+  kategori    KategoriEnum
+  status      StatusAspirasi @default(MENUNGGU)
+  fotoUrl     String?
+  userId      String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user              User                @relation(fields: [userId], references: [id])
+  umpanBalik        UmpanBalik[]
+  progressPerbaikan ProgressPerbaikan[]
+}
+
+model UmpanBalik {
+  id         String         @id @default(uuid())
+  pesan      String
+  statusBaru StatusAspirasi
+  aspirasiId String
+  adminId    String
+  createdAt  DateTime       @default(now())
+
+  aspirasi Aspirasi @relation(fields: [aspirasiId], references: [id])
+  admin    User     @relation(fields: [adminId], references: [id])
+}
+
+model ProgressPerbaikan {
+  id          String   @id @default(uuid())
+  keterangan  String
+  persentase  Int      @default(0)
+  fotoUrl     String?
+  aspirasiId  String
+  adminId     String
+  createdAt   DateTime @default(now())
+
+  aspirasi Aspirasi @relation(fields: [aspirasiId], references: [id])
+  admin    User     @relation(fields: [adminId], references: [id])
+}
