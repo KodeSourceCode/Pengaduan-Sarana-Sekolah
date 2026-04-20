@@ -1,29 +1,46 @@
 export const useAdminAspirasi = () => {
   const aspirasi = useState<Aspirasi[]>("semua-aspirasi", () => []);
   const detail = useState<Aspirasi | null>("detail-aspirasi", () => null);
-  const loading = ref(false);
-  const error = ref("");
+
+  // Granular loading/error states
+  const listLoading = ref(false);
+  const detailLoading = ref(false);
+  const updateStatusLoading = ref(false);
+
+  const listError = ref("");
+  const detailError = ref("");
+  const updateStatusError = ref("");
+
+  // Backward compatibility computed
+  const loading = computed(
+    () => listLoading.value || detailLoading.value || updateStatusLoading.value,
+  );
+  const error = computed(
+    () => listError.value || detailError.value || updateStatusError.value,
+  );
 
   const filter = reactive({
-    status: "" as StatusAspirasi | "",
-    kategori: "" as KategoriEnum | "",
+    judul: "",
+    createdAt: "",
+    updatedAt: "",
     userId: "",
-    dari: "",
-    sampai: "",
+    kategori: "" as KategoriEnum | "",
+    status: "" as StatusAspirasi | "",
   });
 
   const fetchSemuaAspirasi = async (headers?: Record<string, string>) => {
-    loading.value = true;
-    error.value = "";
+    listLoading.value = true;
+    listError.value = "";
 
     try {
       const query: Record<string, string> = {};
 
-      if (filter.status) query.status = filter.status;
-      if (filter.kategori) query.kategori = filter.kategori;
+      if (filter.judul.trim()) query.judul = filter.judul.trim();
+      if (filter.createdAt) query.createdAt = filter.createdAt;
+      if (filter.updatedAt) query.updatedAt = filter.updatedAt;
       if (filter.userId) query.userId = filter.userId;
-      if (filter.dari) query.dari = filter.dari;
-      if (filter.sampai) query.sampai = filter.sampai;
+      if (filter.kategori) query.kategori = filter.kategori;
+      if (filter.status) query.status = filter.status;
 
       const res = await $fetch<ApiResponse<Aspirasi[]>>("/api/aspirasi", {
         query,
@@ -32,15 +49,15 @@ export const useAdminAspirasi = () => {
       aspirasi.value = res.data ?? [];
       return res;
     } catch (err: any) {
-      error.value = err.data?.message ?? "Gagal mengambil data aspirasi";
+      listError.value = err.data?.message ?? "Gagal mengambil data aspirasi";
     } finally {
-      loading.value = false;
+      listLoading.value = false;
     }
   };
 
   const fetchDetail = async (id: string, headers?: Record<string, string>) => {
-    loading.value = true;
-    error.value = "";
+    detailLoading.value = true;
+    detailError.value = "";
 
     try {
       const res = await $fetch<ApiResponse<Aspirasi>>(`/api/aspirasi/${id}`, {
@@ -49,15 +66,17 @@ export const useAdminAspirasi = () => {
       detail.value = res.data ?? null;
       return res;
     } catch (err: any) {
-      error.value = err.data?.message ?? "Gagal mengambil detail aspirasi";
+      detailError.value =
+        err.data?.message ?? "Gagal mengambil detail aspirasi";
+      throw err;
     } finally {
-      loading.value = false;
+      detailLoading.value = false;
     }
   };
 
   const updateStatus = async (id: string, status: StatusAspirasi) => {
-    loading.value = true;
-    error.value = "";
+    updateStatusLoading.value = true;
+    updateStatusError.value = "";
 
     try {
       const res = await $fetch<ApiResponse<Aspirasi>>(`/api/aspirasi/${id}`, {
@@ -73,19 +92,21 @@ export const useAdminAspirasi = () => {
 
       return res;
     } catch (err: any) {
-      error.value = err.data?.message ?? "Gagal memperbarui status aspirasi";
+      updateStatusError.value =
+        err.data?.message ?? "Gagal memperbarui status aspirasi";
       throw err;
     } finally {
-      loading.value = false;
+      updateStatusLoading.value = false;
     }
   };
 
   const resetFilter = () => {
-    filter.status = "";
-    filter.kategori = "";
+    filter.judul = "";
+    filter.createdAt = "";
+    filter.updatedAt = "";
     filter.userId = "";
-    filter.dari = "";
-    filter.sampai = "";
+    filter.kategori = "";
+    filter.status = "";
   };
 
   return {
@@ -93,6 +114,12 @@ export const useAdminAspirasi = () => {
     detail,
     loading,
     error,
+    listLoading,
+    detailLoading,
+    updateStatusLoading,
+    listError,
+    detailError,
+    updateStatusError,
     filter,
     fetchSemuaAspirasi,
     fetchDetail,

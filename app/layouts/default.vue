@@ -8,6 +8,7 @@ async function logout() {
 
 <template>
   <UHeader :toggle="false">
+    <NuxtLoadingIndicator />
     <template #title>
       <h1>Pengaduan Sarana Sekolah</h1>
     </template>

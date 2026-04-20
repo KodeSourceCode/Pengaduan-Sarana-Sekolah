@@ -43,6 +43,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     loading.value = false;
   }
 }
+
+const showPassword = ref(false);
 </script>
 
 <template>
@@ -96,9 +98,23 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             v-model="state.password"
             icon="i-lucide-lock"
             placeholder="Masukkan password"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
+            :ui="{ trailing: 'pe-1' }"
             class="w-full"
-          />
+          >
+            <template #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                size="sm"
+                :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                :aria-pressed="showPassword"
+                aria-controls="password"
+                @click="showPassword = !showPassword"
+              />
+            </template>
+          </UInput>
         </UFormField>
 
         <UButton type="submit" block icon="i-lucide-log-in" :loading="loading">

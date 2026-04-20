@@ -10,13 +10,10 @@ definePageMeta({ middleware: "admin" });
 const route = useRoute();
 const aspirasiId = route.params.id as string;
 const toast = useToast();
+const headers = useRequestHeaders(["cookie"]);
 
-const {
-  detail,
-  loading: detailLoading,
-  fetchDetail,
-  updateStatus,
-} = useAdminAspirasi();
+const { detail, fetchDetail, updateStatus, updateStatusLoading } =
+  useAdminAspirasi();
 const {
   umpanBalik,
   loading: umpanBalikLoading,
@@ -44,33 +41,87 @@ const openPhotoModal = (url: string) => {
   photoModal.isOpen = true;
 };
 
-// ==================== Fetch Data on Mount ====================
-onMounted(async () => {
-  try {
-    await Promise.all([
-      fetchDetail(aspirasiId),
-      fetchUmpanBalik(aspirasiId),
-      fetchProgress(aspirasiId),
-    ]);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
-});
+// ==================== SSR Data Fetching ====================
+const detailKey = `admin-aspirasi-detail:${aspirasiId}`;
+const detailAsync = await useAsyncData(
+  detailKey,
+  () => fetchDetail(aspirasiId, headers),
+  {
+    server: true,
+  },
+);
+
+const umpanBalikKey = `admin-aspirasi-umpan-balik:${aspirasiId}`;
+const umpanBalikAsync = await useAsyncData(
+  umpanBalikKey,
+  () => fetchUmpanBalik(aspirasiId, headers),
+  {
+    server: true,
+  },
+);
+
+const progressKey = `admin-aspirasi-progress:${aspirasiId}`;
+const progressAsync = await useAsyncData(
+  progressKey,
+  () => fetchProgress(aspirasiId, headers),
+  {
+    server: true,
+  },
+);
+
+const detailPending = computed(() => detailAsync.status.value === "pending");
+const detailError = computed(() => detailAsync.error.value?.message ?? null);
+const retryDetail = async () => {
+  await detailAsync.refresh();
+};
+
+const umpanBalikPending = computed(
+  () => umpanBalikAsync.status.value === "pending",
+);
+const umpanBalikError = computed(
+  () => umpanBalikAsync.error.value?.message ?? null,
+);
+const retryUmpanBalik = async () => {
+  await umpanBalikAsync.refresh();
+};
+
+const progressPending = computed(
+  () => progressAsync.status.value === "pending",
+);
+const progressError = computed(
+  () => progressAsync.error.value?.message ?? null,
+);
+const retryProgress = async () => {
+  await progressAsync.refresh();
+};
+
+const statusSubmitting = computed(() => updateStatusLoading.value);
+const umpanBalikSubmitting = computed(() => umpanBalikLoading.value);
+const progressSubmitting = computed(
+  () => uploadLoading.value || progressLoading.value,
+);
+
+const formatTanggal = (value?: string | null) => {
+  if (!value) return "-";
+
+  const tanggal = new Date(value);
+  if (Number.isNaN(tanggal.getTime())) return "-";
+
+  return tanggal.toLocaleDateString("id-ID", {
+    dateStyle: "long",
+  });
+};
 
 // ==================== Status Update ====================
-const statusLoading = ref(false);
 const statusItems = Object.values(StatusAspirasi) as StatusAspirasi[];
 
 const handleStatusUpdate = async (newStatus: StatusAspirasi) => {
   if (!newStatus) return;
-  statusLoading.value = true;
   try {
     await updateStatus(aspirasiId, newStatus);
     toast.add({ title: "Status aspirasi berhasil diperbarui" });
   } catch (error) {
     toast.add({ title: "Gagal memperbarui status", color: "error" });
-  } finally {
-    statusLoading.value = false;
   }
 };
 
@@ -178,10 +229,31 @@ const getStatusColor = (
 
   <!-- ==================== ASPIRASI INFO SECTION ==================== -->
   <UContainer class="mb-10">
-    <div v-if="detailLoading" class="space-y-4">
+    <div v-if="detailPending" class="space-y-4">
       <USkeleton class="h-12 w-3/4" />
       <USkeleton class="h-40" />
     </div>
+
+    <UAlert
+      v-else-if="detailError"
+      color="error"
+      variant="soft"
+      title="Gagal memuat detail aspirasi"
+      :description="detailError || undefined"
+      class="mb-4"
+    >
+      <template #actions>
+        <UButton
+          size="sm"
+          variant="soft"
+          icon="i-lucide-refresh-cw"
+          :loading="detailPending"
+          @click="retryDetail"
+        >
+          Coba lagi
+        </UButton>
+      </template>
+    </UAlert>
 
     <UCard v-else-if="detail" class="bg-card">
       <template #header>
@@ -233,19 +305,11 @@ const getStatusColor = (
             <div class="space-y-2 text-neutral-300">
               <p>
                 <span class="font-medium">Dibuat:</span>
-                {{
-                  new Date(detail.createdAt).toLocaleDateString("id-ID", {
-                    dateStyle: "long",
-                  })
-                }}
+                {{ formatTanggal(detail.createdAt) }}
               </p>
               <p v-if="detail.updatedAt !== detail.createdAt">
                 <span class="font-medium">Diperbarui:</span>
-                {{
-                  new Date(detail.updatedAt).toLocaleDateString("id-ID", {
-                    dateStyle: "long",
-                  })
-                }}
+                {{ formatTanggal(detail.updatedAt) }}
               </p>
             </div>
           </div>
@@ -264,7 +328,7 @@ const getStatusColor = (
             />
           </div>
           <UButton
-            :loading="statusLoading"
+            :loading="statusSubmitting"
             @click="handleStatusUpdate(detail.status)"
             class="mt-6"
           >
@@ -283,9 +347,31 @@ const getStatusColor = (
     </h2>
 
     <!-- Loading Skeleton -->
-    <div v-if="umpanBalikLoading" class="space-y-4">
+    <div v-if="umpanBalikPending" class="space-y-4">
       <USkeleton v-for="i in 2" :key="i" class="h-24" />
     </div>
+
+    <!-- Error Alert -->
+    <UAlert
+      v-else-if="umpanBalikError"
+      color="error"
+      variant="soft"
+      title="Gagal memuat umpan balik"
+      :description="umpanBalikError || undefined"
+      class="mb-4"
+    >
+      <template #actions>
+        <UButton
+          size="sm"
+          variant="soft"
+          icon="i-lucide-refresh-cw"
+          :loading="umpanBalikPending"
+          @click="retryUmpanBalik"
+        >
+          Coba lagi
+        </UButton>
+      </template>
+    </UAlert>
 
     <!-- Timeline Display -->
     <div v-else-if="umpanBalik.length > 0" class="space-y-4 mb-8">
@@ -356,7 +442,7 @@ const getStatusColor = (
           />
         </UFormField>
 
-        <UButton type="submit" :loading="umpanBalikLoading">
+        <UButton type="submit" :loading="umpanBalikSubmitting">
           Simpan Umpan Balik
         </UButton>
       </UForm>
@@ -371,7 +457,7 @@ const getStatusColor = (
     </h2>
 
     <!-- Progress Bar -->
-    <div v-if="!progressLoading" class="mb-6">
+    <div v-if="!progressPending" class="mb-6">
       <div class="flex justify-between items-center mb-2">
         <span class="text-sm font-medium"
           >Persentase Terbaru: {{ persentaseTerakhir }}%</span
@@ -386,9 +472,31 @@ const getStatusColor = (
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="progressLoading" class="space-y-4">
+    <div v-if="progressPending" class="space-y-4">
       <USkeleton v-for="i in 2" :key="i" class="h-24" />
     </div>
+
+    <!-- Error Alert -->
+    <UAlert
+      v-else-if="progressError"
+      color="error"
+      variant="soft"
+      title="Gagal memuat progress"
+      :description="progressError || undefined"
+      class="mb-4"
+    >
+      <template #actions>
+        <UButton
+          size="sm"
+          variant="soft"
+          icon="i-lucide-refresh-cw"
+          :loading="progressPending"
+          @click="retryProgress"
+        >
+          Coba lagi
+        </UButton>
+      </template>
+    </UAlert>
 
     <!-- Timeline Display -->
     <div v-else-if="progress.length > 0" class="mb-8">
@@ -413,11 +521,7 @@ const getStatusColor = (
 
           <template #footer>
             <span class="text-neutral-400 text-sm">
-              {{
-                new Date(item.createdAt).toLocaleDateString("id-ID", {
-                  dateStyle: "long",
-                })
-              }}
+              {{ formatTanggal(item.createdAt) }}
             </span>
             <div class="flex gap-2">
               <UButton
@@ -495,7 +599,7 @@ const getStatusColor = (
           />
         </UFormField>
 
-        <UButton type="submit" :loading="uploadLoading || progressLoading">
+        <UButton type="submit" :loading="progressSubmitting">
           {{
             uploadLoading
               ? "Upload Gambar..."

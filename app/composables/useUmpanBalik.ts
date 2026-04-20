@@ -1,52 +1,58 @@
 export const useUmpanBalik = () => {
-  const umpanBalik = ref<UmpanBalik[]>([])
-  const loading = ref(false)
-  const error = ref('')
+  const umpanBalik = ref<UmpanBalik[]>([]);
+  const loading = ref(false);
+  const error = ref("");
 
-  const fetchUmpanBalik = async (aspirasiId: string) => {
-    loading.value = false
-    error.value = ''
+  const fetchUmpanBalik = async (
+    aspirasiId: string,
+    headers?: Record<string, string>,
+  ) => {
+    loading.value = true;
+    error.value = "";
 
     try {
-      const res = await $fetch<ApiResponse<UmpanBalik[]>>('/api/umpan-balik', {
-        query: { aspirasiId }
-      })
+      const res = await $fetch<ApiResponse<UmpanBalik[]>>("/api/umpan-balik", {
+        query: { aspirasiId },
+        headers,
+      });
 
-      umpanBalik.value = res.data ?? []
+      umpanBalik.value = res.data ?? [];
+      return res;
     } catch (err: any) {
-      error.value = err.data?.message ?? 'Gagal mengambil umpan balik'
-    }finally{
-      loading.value = false
+      error.value = err.data?.message ?? "Gagal mengambil umpan balik";
+      throw err;
+    } finally {
+      loading.value = false;
     }
-  }
+  };
 
   const buatUmpanBalik = async (
     aspirasiId: string,
     body: {
-      pesan: string,
-      statusBaru: StatusAspirasi
-    }
+      pesan: string;
+      statusBaru: StatusAspirasi;
+    },
   ) => {
-    loading.value = false
-    error.value = ''
-    
+    loading.value = true;
+    error.value = "";
+
     try {
-      const res = await $fetch<ApiResponse<UmpanBalik>>('/api/umpan-balik', {
-        method: 'POST',
+      const res = await $fetch<ApiResponse<UmpanBalik>>("/api/umpan-balik", {
+        method: "POST",
         query: { aspirasiId },
-        body
-      })
+        body,
+      });
 
-      if(res.data) umpanBalik.value.push(res.data)
+      if (res.data) umpanBalik.value.push(res.data);
 
-      return res
+      return res;
     } catch (err: any) {
-      error.value = err.data?.message ?? 'Gagal mengirim umpan balik'
-      throw error.value
-    }finally{
-      loading.value = false
+      error.value = err.data?.message ?? "Gagal mengirim umpan balik";
+      throw err;
+    } finally {
+      loading.value = false;
     }
-  }
+  };
 
   return {
     umpanBalik,
@@ -54,5 +60,5 @@ export const useUmpanBalik = () => {
     error,
     fetchUmpanBalik,
     buatUmpanBalik,
-  }
-}
+  };
+};

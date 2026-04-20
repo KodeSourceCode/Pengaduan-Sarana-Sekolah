@@ -1,110 +1,125 @@
 export const useProgress = () => {
-  const progress = ref<ProgressPerbaikan[]>([])
-  const loading = ref(false)
-  const error = ref('')
-  
-  const fetchProgress = async (aspirasiId: string) => {
-    loading.value = false
-    error.value = ''
+  const progress = ref<ProgressPerbaikan[]>([]);
+  const loading = ref(false);
+  const error = ref("");
+
+  const fetchProgress = async (
+    aspirasiId: string,
+    headers?: Record<string, string>,
+  ) => {
+    loading.value = true;
+    error.value = "";
 
     try {
-      const res = await $fetch<ApiResponse<ProgressPerbaikan[]>>('/api/progress', {
-        query: { aspirasiId }
-      })
+      const res = await $fetch<ApiResponse<ProgressPerbaikan[]>>(
+        "/api/progress",
+        {
+          query: { aspirasiId },
+          headers,
+        },
+      );
 
-      progress.value = res.data ?? []
+      progress.value = res.data ?? [];
+      return res;
     } catch (err: any) {
-       error.value = err.data?.message ?? 'Gagal mengambil data progress'
+      error.value = err.data?.message ?? "Gagal mengambil data progress";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const buatProgress = async (
     aspirasiId: string,
     body: {
-      keterangan: string,
-      persentase: number,
-      fotoUrl?: string
-    }
+      keterangan: string;
+      persentase: number;
+      fotoUrl?: string;
+    },
   ) => {
-    loading.value = false
-    error.value = ''
+    loading.value = true;
+    error.value = "";
 
     try {
-      const res = await $fetch<ApiResponse<ProgressPerbaikan>>('/api/progress', {
-        method: 'POST',
-        query: { aspirasiId },
-        body
-      })
+      const res = await $fetch<ApiResponse<ProgressPerbaikan>>(
+        "/api/progress",
+        {
+          method: "POST",
+          query: { aspirasiId },
+          body,
+        },
+      );
 
-      if(res.data) progress.value.push(res.data)
+      if (res.data) progress.value.push(res.data);
 
-      return res
+      return res;
     } catch (err: any) {
-      error.value = err.data?.message ?? 'Gagal menambah progress'
-      throw error.value
+      error.value = err.data?.message ?? "Gagal menambah progress";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const updateProgress = async (
     id: string,
     body: {
-      keterangan: string,
-      persentase: number,
-      fotoUrl?: string
-    }
+      keterangan: string;
+      persentase: number;
+      fotoUrl?: string;
+    },
   ) => {
-    loading.value = false
-    error.value = ''
+    loading.value = true;
+    error.value = "";
 
     try {
-      const res = await $fetch<ApiResponse<ProgressPerbaikan>>(`/api/progress/${id}`, {
-        method: 'PATCH',
-        body
-      })
+      const res = await $fetch<ApiResponse<ProgressPerbaikan>>(
+        `/api/progress/${id}`,
+        {
+          method: "PATCH",
+          body,
+        },
+      );
 
-      const index = progress.value.findIndex((p) => p.id === id)
-      const item = progress.value[index]
+      const index = progress.value.findIndex((p) => p.id === id);
+      const item = progress.value[index];
       if (index !== -1 && item) {
-        item.keterangan = body.keterangan
-        item.persentase = body.persentase
-        item.fotoUrl = body.fotoUrl ?? null
+        item.keterangan = body.keterangan;
+        item.persentase = body.persentase;
+        item.fotoUrl = body.fotoUrl ?? null;
       }
 
-      return res
+      return res;
     } catch (err: any) {
-      error.value = err.data?.message ?? 'Gagal mengupdate progress'
-      throw error.value
+      error.value = err.data?.message ?? "Gagal mengupdate progress";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const hapusProgress = async (id: string) => {
-    loading.value = false
-    error.value = ''
+    loading.value = true;
+    error.value = "";
 
     try {
       await $fetch(`/api/progress/${id}`, {
-        method: 'DELETE'
-      })
+        method: "DELETE",
+      });
 
-      progress.value = progress.value.filter((p) => p.id !== id)
+      progress.value = progress.value.filter((p) => p.id !== id);
     } catch (err: any) {
-      error.value = err.data?.message ?? 'Gagal menghapus progress'
-      throw error.value
+      error.value = err.data?.message ?? "Gagal menghapus progress";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const persentaseTerakhir = computed(() => {
-    if (progress.value.length === 0) return 0
-    return progress.value[progress.value.length - 1]?.persentase ?? 0
-  })
+    if (progress.value.length === 0) return 0;
+    return progress.value[progress.value.length - 1]?.persentase ?? 0;
+  });
 
   return {
     progress,
@@ -115,5 +130,5 @@ export const useProgress = () => {
     buatProgress,
     updateProgress,
     hapusProgress,
-  }
-}
+  };
+};
