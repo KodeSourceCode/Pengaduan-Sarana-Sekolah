@@ -13,18 +13,9 @@ export const registerSchema = z.object({
   kelas: z.string().min(2, "Kelas minimal 2 karakter"),
 });
 
-
-const passwordCheckShema = registerSchema
-  .extend({ confirmPassword: z.string() })
-  
-export const registerClientSchema = passwordCheckShema
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Password do not match",
-    path: ["confirmPassword"],
-    // run if password & confirmPassword are valid
-    when(payload) { 
-      return passwordCheckShema 
-        .pick({ password: true, confirmPassword: true }) 
-        .safeParse(payload.value).success; 
-    },  
-  });
+export const registerSiswaByAdminSchema = z.object({
+  nis: z.string().min(1, "NIS wajib diisi"),
+  nama: z.string().min(1, "Nama wajib diisi"),
+  email: z.email("Format email tidak valid"),
+  kelas: z.string().min(2, "Kelas minimal 2 karakter"),
+});

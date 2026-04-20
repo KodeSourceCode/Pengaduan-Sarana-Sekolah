@@ -23,7 +23,6 @@ const {
 } = useUpload();
 
 const selectedFile = ref<File | null>(null);
-const previewUrl = ref("");
 const state = reactive<Partial<Schema>>({
   judul: "",
   deskripsi: "",

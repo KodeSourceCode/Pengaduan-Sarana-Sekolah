@@ -24,3 +24,11 @@ logs
 !.env.example
 
 /generated/prisma
+
+/plan/
+/implementations/
+.vscode
+.agents
+.github
+project-context.md
+skills-lock.json

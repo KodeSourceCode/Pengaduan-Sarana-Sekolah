@@ -2,7 +2,12 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@nuxt/image", "nuxt-auth-utils"],
+  modules: [
+    "@nuxt/ui",
+    "@nuxt/image",
+    "nuxt-auth-utils",
+    "@vueuse/nuxt"
+  ],
   css: ["~/assets/css/main.css"],
   vite: {
     optimizeDeps: {
@@ -22,5 +27,5 @@ export default defineNuxtConfig({
       password: process.env.NUXT_SESSION_PASSWORD!,
       maxAge: 60 * 60 * 24 * 7, // 7 hari
     }
-  }
+  },
 });

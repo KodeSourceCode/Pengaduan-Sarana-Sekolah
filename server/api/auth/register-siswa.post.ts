@@ -1,75 +1,66 @@
-import { registerSchema } from '#shared/schemas/auth.schema'
+import { registerSiswaByAdminSchema } from "#shared/schemas/auth.schema";
+
+const DEFAULT_SISWA_PASSWORD = "pengaduanSiswa#123";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
+  await requireAdmin(event);
 
-  // Validasi input
-  const result = registerSchema.safeParse(body)
+  const body = await readBody(event);
+  const result = registerSiswaByAdminSchema.safeParse(body);
+
   if (!result.success) {
     throw createError({
       statusCode: 400,
       message: result.error.message,
-    })
+    });
   }
 
-  // Cek NIS sudah terdaftar
   const existingNis = await prisma.user.findUnique({
     where: { nis: result.data.nis },
-  })
+  });
+
   if (existingNis) {
     throw createError({
       statusCode: 409,
-      message: 'NIS sudah terdaftar',
-    })
+      message: "NIS sudah terdaftar",
+    });
   }
 
-  // Cek email sudah terdaftar
   const existingEmail = await prisma.user.findUnique({
     where: { email: result.data.email },
-  })
+  });
+
   if (existingEmail) {
     throw createError({
       statusCode: 409,
-      message: 'Email sudah terdaftar',
-    })
+      message: "Email sudah terdaftar",
+    });
   }
 
-  // Hash password
-  const hashedPassword = await hashPassword(result.data.password)
+  const hashedPassword = await hashPassword(DEFAULT_SISWA_PASSWORD);
 
-  // Buat user baru
   const user = await prisma.user.create({
     data: {
       nis: result.data.nis,
       nama: result.data.nama,
       email: result.data.email,
-      password: hashedPassword,
       kelas: result.data.kelas,
+      password: hashedPassword,
+      role: "SISWA",
     },
-  })
-
-  await setUserSession(event, {
-    user: {
-      id: user.id,
-      nis: user.nis,
-      nama: user.nama,
-      role: user.role,
-      kelas: user.kelas,
-    },
-    loggedInAt: new Date()
-  })
+  });
 
   return {
     success: true,
-    message: 'Registrasi berhasil',
+    message: "Akun siswa berhasil dibuat",
     data: {
       id: user.id,
       nis: user.nis,
-      email: user.email,
       nama: user.nama,
+      email: user.email,
       role: user.role,
       kelas: user.kelas,
-      createdAt: user.createdAt.toISOString()
+      createdAt: user.createdAt.toISOString(),
     },
-  } satisfies ApiResponse<AuthUser>
-})
+  } satisfies ApiResponse<AuthUser>;
+});

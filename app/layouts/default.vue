@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-const { clear } = useUserSession()
+const { clear } = useUserSession();
 async function logout() {
-  await clear()
-  await navigateTo('/login')
+  await clear();
+  await navigateTo("/login");
 }
 </script>
 
@@ -17,7 +17,7 @@ async function logout() {
           <UPopover
             arrow
             :ui="{
-              content: 'p-2 w-35',
+              content: 'p-2 w-54',
             }"
             v-if="loggedIn"
           >
@@ -32,10 +32,59 @@ async function logout() {
             </div>
 
             <template #content>
+              <template v-if="user?.role === 'ADMIN'">
+                <UButton
+                  icon="i-lucide-layout-dashboard"
+                  color="neutral"
+                  variant="ghost"
+                  class="w-full"
+                  to="/admin/"
+                >
+                  Dashboard Admin
+                </UButton>
+                <UButton
+                  icon="i-lucide-users"
+                  color="neutral"
+                  variant="ghost"
+                  class="w-full"
+                  to="/admin/akun-siswa"
+                >
+                  Kelola Akun Siswa
+                </UButton>
+                <UButton
+                  icon="i-lucide-form"
+                  color="neutral"
+                  variant="ghost"
+                  class="w-full"
+                  to="/admin/aspirasi"
+                >
+                  Kelola Aspirasi
+                </UButton>
+              </template>
+              <template v-else>
+                <UButton
+                  icon="i-lucide-form"
+                  color="neutral"
+                  variant="ghost"
+                  class="w-full"
+                  to="/siswa/aspirasi"
+                >
+                  Buat Aspirasi
+                </UButton>
+                <UButton
+                  icon="i-lucide-history"
+                  color="neutral"
+                  variant="ghost"
+                  class="w-full"
+                  to="/siswa/histori"
+                >
+                  Histori Aspirasi
+                </UButton>
+              </template>
               <UButton
                 icon="i-lucide-log-out"
                 color="error"
-                variant="subtle"
+                variant="ghost"
                 class="w-full"
                 loading-auto
                 @click="logout"
@@ -44,17 +93,10 @@ async function logout() {
               </UButton>
             </template>
           </UPopover>
-          <UButton 
-            v-else 
-            to="/login"
-          >
-            Sign In
-          </UButton>
+          <UButton v-else to="/login"> Sign In </UButton>
         </template>
         <template #placeholder>
-          <UButton loading>
-            Loading
-          </UButton>
+          <UButton loading> Loading </UButton>
         </template>
       </AuthState>
     </template>

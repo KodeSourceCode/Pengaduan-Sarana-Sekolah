@@ -4,13 +4,34 @@ definePageMeta({
 })
 import type { ButtonProps } from '@nuxt/ui'
 
-const links = ref<ButtonProps[]>([
+const { user} = useUserSession()
+
+const siswaLinks: ButtonProps[] = [
   {
     label: 'Mulai Pengaduan',
     to: '/siswa/aspirasi',
     icon: 'i-lucide-square-play'
   }
-])
+]
+
+const adminLinks: ButtonProps[] = [
+  {
+    label: 'Dashboard Admin',
+    to: '/admin/',
+    icon: 'i-lucide-layout-dashboard'
+  },
+  {
+    label: 'Kelola Pengaduan',
+    to: '/admin/aspirasi',
+    icon: 'i-lucide-folder'
+  }
+]
+
+const links = computed<ButtonProps[]>(() => {
+  if (user.value?.role === 'ADMIN') return adminLinks
+  if (user.value?.role === 'SISWA') return siswaLinks
+  return []
+})
 </script>
 
 <template>
