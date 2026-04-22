@@ -120,6 +120,16 @@ const showPassword = ref(false);
         <UButton type="submit" block icon="i-lucide-log-in" :loading="loading">
           Masuk
         </UButton>
+
+        <UButton
+          to="/publik"
+          block
+          variant="ghost"
+          color="neutral"
+          icon="i-lucide-earth"
+        >
+          Lihat Halaman Publik
+        </UButton>
       </UForm>
     </UCard>
   </div>

@@ -20,6 +20,21 @@ yarn install
 bun install
 ```
 
+## API Access Policy
+
+Dokumen ringkas aturan endpoint publik dan privat.
+
+| Endpoint                 | Method | Access     | Keterangan                          |
+| ------------------------ | ------ | ---------- | ----------------------------------- |
+| /api/auth/login          | POST   | Public     | Login user                          |
+| /api/aspirasi/publik     | GET    | Public     | Listing aspirasi publik + statistik |
+| /api/auth/register-siswa | POST   | Admin only | Registrasi akun siswa               |
+| /api/aspirasi            | GET    | Admin only | Listing admin dengan filter         |
+
+- `GET /api/aspirasi` tidak lagi menerima mode query untuk perilaku publik.
+- Endpoint publik harus menggunakan jalur khusus `/api/aspirasi/publik`.
+- Aturan enforcement utama berada di `server/middleware/auth.ts`.
+
 ## Development Server
 
 Start the development server on `http://localhost:3000`:

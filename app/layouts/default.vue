@@ -13,6 +13,14 @@ async function logout() {
       <h1>Pengaduan Sarana Sekolah</h1>
     </template>
     <template #right>
+      <UButton
+        to="/publik"
+        variant="ghost"
+        color="neutral"
+        icon="i-lucide-earth"
+      >
+        Halaman Publik
+      </UButton>
       <AuthState>
         <template #default="{ loggedIn, user }">
           <UPopover

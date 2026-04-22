@@ -33,6 +33,10 @@ const totalSelesai = computed(
   () =>
     aspirasi.value.filter((a) => a.status === StatusAspirasi.SELESAI).length,
 );
+const totalDitolak = computed(
+  () =>
+    aspirasi.value.filter((a) => a.status === StatusAspirasi.DITOLAK).length,
+);
 
 const aspirasiTerbaru = computed(() => {
   const filtered = statusFilter.value
@@ -130,6 +134,12 @@ const statCards = computed(() => [
     cardClass: "border-l-4 border-l-green-500",
     badgeColor: "success" as const,
   },
+  {
+    title: "Ditolak",
+    value: totalDitolak.value,
+    cardClass: "border-l-4 border-l-red-500",
+    badgeColor: "error" as const,
+  },
 ]);
 </script>
 
@@ -158,8 +168,8 @@ const statCards = computed(() => [
       </div>
     </div>
 
-    <div v-if="loading" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <UCard v-for="idx in 4" :key="`skeleton-stat-${idx}`">
+    <div v-if="loading" class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <UCard v-for="idx in 5" :key="`skeleton-stat-${idx}`">
         <div class="space-y-3">
           <USkeleton class="h-4 w-24" />
           <USkeleton class="h-8 w-16" />
@@ -167,7 +177,7 @@ const statCards = computed(() => [
       </UCard>
     </div>
 
-    <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       <UCard
         v-for="card in statCards"
         :key="card.title"

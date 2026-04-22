@@ -11,6 +11,11 @@ const siswaLinks: ButtonProps[] = [
     label: 'Mulai Pengaduan',
     to: '/siswa/aspirasi',
     icon: 'i-lucide-square-play'
+  },
+  {
+    label: 'Histori Pengaduan',
+    to: '/siswa/histori',
+    icon: 'i-lucide-history'
   }
 ]
 

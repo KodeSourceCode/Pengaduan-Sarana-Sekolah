@@ -1,8 +1,12 @@
-const publicRoutes = ["/api/auth/login"];
+const publicRoutes = ["/api/auth/login", "/api/aspirasi/publik"];
 
 export default defineEventHandler(async (event) => {
-  const isApiRoute = event.path.startsWith("/api/");
-  const isPublic = publicRoutes.includes(event.path);
+  const pathname = getRequestURL(event).pathname;
+  const isApiRoute = pathname.startsWith("/api/");
+  const normalizedPath = pathname.endsWith("/")
+    ? pathname.slice(0, -1)
+    : pathname;
+  const isPublic = publicRoutes.includes(normalizedPath);
 
   if (isApiRoute && !isPublic) {
     const session = await getUserSession(event);

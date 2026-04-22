@@ -4,6 +4,7 @@ export default defineEventHandler(async (event) => {
   await requireAdmin(event);
 
   const query = getQuery(event);
+
   const filter = filterAspirasiSchema.safeParse(query);
 
   const where: any = {};

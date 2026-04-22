@@ -11,6 +11,19 @@ export const updateStatusSchema = z.object({
   status: z.enum(["MENUNGGU", "DIPROSES", "SELESAI", "DITOLAK"]),
 });
 
+export const PUBLIC_ASPIRASI_PER_PAGE = 20 as const;
+
+export const publicAspirasiQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  // Keep public page size capped for endpoint stability.
+  perPage: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(PUBLIC_ASPIRASI_PER_PAGE)
+    .default(PUBLIC_ASPIRASI_PER_PAGE),
+});
+
 const exactDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
 export const filterAspirasiSchema = z.object({
