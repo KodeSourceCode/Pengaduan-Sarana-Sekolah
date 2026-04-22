@@ -8,14 +8,47 @@ export default defineEventHandler(async (event) => {
   const filter = filterAspirasiSchema.safeParse(query);
 
   const where: any = {};
-  const toDayRange = (value: string) => {
-    const startOfDay = new Date(`${value}T00:00:00.000Z`);
-    const nextDay = new Date(startOfDay);
-    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  const getUtcMonthContext = (monthValue?: string) => {
+    if (monthValue) {
+      const [yearPart, monthPart] = monthValue.split("-");
+      return {
+        year: Number(yearPart),
+        monthIndex: Number(monthPart) - 1,
+      };
+    }
+
+    const now = new Date();
+    return {
+      year: now.getUTCFullYear(),
+      monthIndex: now.getUTCMonth(),
+    };
+  };
+
+  const toUtcMonthRange = (value: string) => {
+    const { year, monthIndex } = getUtcMonthContext(value);
+
+    const startOfMonth = new Date(Date.UTC(year, monthIndex, 1, 0, 0, 0, 0));
+    const startOfNextMonth = new Date(
+      Date.UTC(year, monthIndex + 1, 1, 0, 0, 0, 0),
+    );
+
+    return {
+      gte: startOfMonth,
+      lt: startOfNextMonth,
+    };
+  };
+
+  const toUtcDayRange = (day: number, monthValue?: string) => {
+    const { year, monthIndex } = getUtcMonthContext(monthValue);
+
+    const startOfDay = new Date(Date.UTC(year, monthIndex, day, 0, 0, 0, 0));
+    const startOfNextDay = new Date(
+      Date.UTC(year, monthIndex, day + 1, 0, 0, 0, 0),
+    );
 
     return {
       gte: startOfDay,
-      lt: nextDay,
+      lt: startOfNextDay,
     };
   };
 
@@ -31,10 +64,23 @@ export default defineEventHandler(async (event) => {
     if (filter.data.status) where.status = filter.data.status;
     if (filter.data.kategori) where.kategori = filter.data.kategori;
     if (filter.data.userId) where.userId = filter.data.userId;
-    if (filter.data.createdAt)
-      where.createdAt = toDayRange(filter.data.createdAt);
-    if (filter.data.updatedAt)
-      where.updatedAt = toDayRange(filter.data.updatedAt);
+    if (filter.data.createdDay) {
+      where.createdAt = toUtcDayRange(
+        filter.data.createdDay,
+        filter.data.createdMonth,
+      );
+    } else if (filter.data.createdMonth) {
+      where.createdAt = toUtcMonthRange(filter.data.createdMonth);
+    }
+
+    if (filter.data.updatedDay) {
+      where.updatedAt = toUtcDayRange(
+        filter.data.updatedDay,
+        filter.data.updatedMonth,
+      );
+    } else if (filter.data.updatedMonth) {
+      where.updatedAt = toUtcMonthRange(filter.data.updatedMonth);
+    }
   }
 
   const data = await prisma.aspirasi.findMany({

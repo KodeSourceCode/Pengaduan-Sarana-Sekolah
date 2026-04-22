@@ -6,6 +6,46 @@ const { fetchSemuaAspirasi, aspirasi, filter, resetFilter } =
 const { siswa, fetchSiswa } = useAdminSiswa();
 const displayGambar = ref("");
 const openModal = ref(false);
+const currentDate = useState("admin-aspirasi-current-date", () =>
+  new Date().toISOString(),
+);
+
+const getUtcMonthContext = (monthValue?: string) => {
+  if (monthValue) {
+    const [yearPart, monthPart] = monthValue.split("-");
+
+    return {
+      year: Number(yearPart),
+      monthIndex: Number(monthPart) - 1,
+    };
+  }
+
+  const now = new Date(currentDate.value);
+
+  return {
+    year: now.getUTCFullYear(),
+    monthIndex: now.getUTCMonth(),
+  };
+};
+
+const getDaysInMonth = (monthValue?: string) => {
+  const { year, monthIndex } = getUtcMonthContext(monthValue);
+
+  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+};
+
+const buildDayOptions = (monthValue?: string) => {
+  const daysInMonth = getDaysInMonth(monthValue);
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = String(index + 1);
+
+    return {
+      label: day,
+      value: day,
+    };
+  });
+};
 
 await useAsyncData("semua-aspirasi", () => fetchSemuaAspirasi(headers));
 await useAsyncData("admin-siswa-opsi", () => fetchSiswa(headers));
@@ -32,6 +72,31 @@ const statusOptions = [
   { label: "DITOLAK", value: "DITOLAK" },
 ];
 
+const createdDayOptions = computed(() => buildDayOptions(filter.createdMonth));
+const updatedDayOptions = computed(() => buildDayOptions(filter.updatedMonth));
+
+watch(
+  () => [filter.createdMonth, filter.createdDay],
+  ([createdMonth, createdDay]) => {
+    const daysInMonth = getDaysInMonth(createdMonth);
+
+    if (createdDay && Number(createdDay) > daysInMonth) {
+      filter.createdDay = "";
+    }
+  },
+);
+
+watch(
+  () => [filter.updatedMonth, filter.updatedDay],
+  ([updatedMonth, updatedDay]) => {
+    const daysInMonth = getDaysInMonth(updatedMonth);
+
+    if (updatedDay && Number(updatedDay) > daysInMonth) {
+      filter.updatedDay = "";
+    }
+  },
+);
+
 const applyFilter = async () => {
   await fetchSemuaAspirasi(headers);
 };
@@ -44,8 +109,10 @@ const clearFilter = async () => {
 const hasActiveFilter = computed(() => {
   return Boolean(
     filter.judul.trim() ||
-    filter.createdAt ||
-    filter.updatedAt ||
+    filter.createdMonth ||
+    filter.createdDay ||
+    filter.updatedMonth ||
+    filter.updatedDay ||
     filter.userId ||
     filter.kategori ||
     filter.status,
@@ -129,12 +196,30 @@ const columns: TableColumn<Aspirasi>[] = [
           />
         </UFormField>
 
-        <UFormField label="Tanggal Dibuat">
-          <UInput v-model="filter.createdAt" type="date" class="w-full" />
+        <UFormField label="Bulan Dibuat">
+          <UInput v-model="filter.createdMonth" type="month" class="w-full" />
         </UFormField>
 
-        <UFormField label="Tanggal Diupdate">
-          <UInput v-model="filter.updatedAt" type="date" class="w-full" />
+        <UFormField label="Hari Dibuat">
+          <USelect
+            v-model="filter.createdDay"
+            :items="createdDayOptions"
+            placeholder="Semua hari"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Bulan Diupdate">
+          <UInput v-model="filter.updatedMonth" type="month" class="w-full" />
+        </UFormField>
+
+        <UFormField label="Hari Diupdate">
+          <USelect
+            v-model="filter.updatedDay"
+            :items="updatedDayOptions"
+            placeholder="Semua hari"
+            class="w-full"
+          />
         </UFormField>
 
         <UFormField label="Siswa">
@@ -230,11 +315,7 @@ const columns: TableColumn<Aspirasi>[] = [
           >
             Gambar
           </UButton>
-          <template
-            v-else-if="!row.original.fotoUrl"
-          >
-            -
-          </template>
+          <template v-else-if="!row.original.fotoUrl"> - </template>
         </div>
       </template>
     </UTable>

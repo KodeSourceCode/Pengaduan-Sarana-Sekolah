@@ -24,18 +24,20 @@ export const publicAspirasiQuerySchema = z.object({
     .default(PUBLIC_ASPIRASI_PER_PAGE),
 });
 
-const exactDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+const exactMonthRegex = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export const filterAspirasiSchema = z.object({
   judul: z.string().min(1).optional(),
-  createdAt: z
+  createdMonth: z
     .string()
-    .regex(exactDateRegex, "Format tanggal harus YYYY-MM-DD")
+    .regex(exactMonthRegex, "Format bulan harus YYYY-MM")
     .optional(),
-  updatedAt: z
+  createdDay: z.coerce.number().int().min(1).max(31).optional(),
+  updatedMonth: z
     .string()
-    .regex(exactDateRegex, "Format tanggal harus YYYY-MM-DD")
+    .regex(exactMonthRegex, "Format bulan harus YYYY-MM")
     .optional(),
+  updatedDay: z.coerce.number().int().min(1).max(31).optional(),
   userId: z.string().optional(),
   kategori: z
     .enum([

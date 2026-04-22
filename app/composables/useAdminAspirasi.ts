@@ -21,8 +21,10 @@ export const useAdminAspirasi = () => {
 
   const filter = reactive({
     judul: "",
-    createdAt: "",
-    updatedAt: "",
+    createdMonth: "",
+    createdDay: "",
+    updatedMonth: "",
+    updatedDay: "",
     userId: "",
     kategori: "" as KategoriEnum | "",
     status: "" as StatusAspirasi | "",
@@ -36,8 +38,10 @@ export const useAdminAspirasi = () => {
       const query: Record<string, string> = {};
 
       if (filter.judul.trim()) query.judul = filter.judul.trim();
-      if (filter.createdAt) query.createdAt = filter.createdAt;
-      if (filter.updatedAt) query.updatedAt = filter.updatedAt;
+      if (filter.createdMonth) query.createdMonth = filter.createdMonth;
+      if (filter.createdDay) query.createdDay = filter.createdDay;
+      if (filter.updatedMonth) query.updatedMonth = filter.updatedMonth;
+      if (filter.updatedDay) query.updatedDay = filter.updatedDay;
       if (filter.userId) query.userId = filter.userId;
       if (filter.kategori) query.kategori = filter.kategori;
       if (filter.status) query.status = filter.status;
@@ -102,8 +106,10 @@ export const useAdminAspirasi = () => {
 
   const resetFilter = () => {
     filter.judul = "";
-    filter.createdAt = "";
-    filter.updatedAt = "";
+    filter.createdMonth = "";
+    filter.createdDay = "";
+    filter.updatedMonth = "";
+    filter.updatedDay = "";
     filter.userId = "";
     filter.kategori = "";
     filter.status = "";
