@@ -50,8 +50,9 @@ const links = computed<ButtonProps[]>(() => {
     class="flex justify-center h-fit p-3.5 bg-neutral-200/7 rounded-md"
   >
       <NuxtImg 
-        src="/pengaduan_sarana_sekolah.webp"  
-        class="object-contain w-full h-auto rounded-sm" 
+        src="/pengaduan-sarana-sekolah-hero-section-image.png"
+        format="webp"
+        class="object-contain w-full h-auto rounded-sm"
       />
   </div>
   </UPageHero>
