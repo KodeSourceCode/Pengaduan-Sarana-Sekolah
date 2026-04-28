@@ -133,6 +133,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
             placeholder="Masukkan NIS"
             icon="i-lucide-id-card"
             class="w-full"
+            maxlength="10"
           />
         </UFormField>
 

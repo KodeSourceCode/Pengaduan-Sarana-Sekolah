@@ -548,6 +548,7 @@ const onDeleteConfirm = async () => {
     ),
     radial-gradient(circle at 55% 0%, rgba(28, 42, 67, 0.08), transparent 56%);
   pointer-events: none;
+  border-radius: var(--hist-radius);
   z-index: -2;
 }
 

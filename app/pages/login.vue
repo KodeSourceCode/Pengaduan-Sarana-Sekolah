@@ -90,6 +90,7 @@ const showPassword = ref(false);
             icon="i-lucide-id-card"
             placeholder="Masukkan NIS"
             class="w-full"
+            maxlength="10"
           />
         </UFormField>
 
